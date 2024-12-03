@@ -3,27 +3,24 @@
 
 # class P3
 class P3
-  def initialize(filename)
-    @lines = File.open(filename).read
-  end
+  attr_reader :part1, :part2
 
-  def part1
-    @products ||= @lines.scan(/mul\((\d{1,3}),(\d{1,3})\)/).map { |a, b| a.to_i * b.to_i }
-    @products.sum.to_s
-  end
+  def initialize(filename) # rubocop:disable Metrics/AbcSize,Metrics/CyclomaticComplexity,Metrics/MethodLength,Metrics/PerceivedComplexity
+    mul_regexp = /mul\((\d{1,3}),(\d{1,3})\)/
+    all_regexp = /mul\(\d{1,3},\d{1,3}\)|do\(\)|don't\(\)/
 
-  def part2 # rubocop:disable Metrics/CyclomaticComplexity,Metrics/MethodLength
-    mul = true
-    @products2 ||= @lines.scan(/mul\(\d{1,3},\d{1,3}\)|do\(\)|don't\(\)/).map do |instr|
-      case instr
-      when /^mul/ then a, b = instr.scan(/\d{1,3}/).map(&:to_i)
-                       mul ? a * b : 0
-      when 'do()' then mul = true
-                       0
-      when "don't()" then mul = false
-      end || 0
-    end
-    @products2.sum.to_s
+    @parse_products = -> { File.read(filename).scan(mul_regexp).map { |nums| nums.map(&:to_i) } }
+    @parse_products_dos_donts = -> { File.read(filename).scan(all_regexp) }
+
+    @part1 ||= @parse_products.call.map { |a, b| a * b }.sum.to_s
+    @part2 ||= @parse_products_dos_donts.call.each_with_object({ multiply: 1, results: [] }) do |instr, state|
+      state[:results] << case instr
+                         when /^mul/ then instr.scan(/\d{1,3}/).map(&:to_i).reduce(&:*) * state[:multiply]
+                         when 'do()' then state[:multiply] = 1
+                                          0
+                         when "don't()" then state[:multiply] = 0
+                         end
+    end[:results].sum.to_s
   end
 end
 
