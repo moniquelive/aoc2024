@@ -6,21 +6,21 @@ class P4
   attr_reader :part1, :part2
 
   def initialize(filename)
-    board = %w[
-      MMMSXXMASM
-      MSAMXMSMSA
-      AMXSXMAAMM
-      MSAMASMSMX
-      XMASAMXAMM
-      XXAMMXXAMA
-      SMSMSASXSS
-      SAXAMASAAA
-      MAMMMXMMMM
-      MXMXAXMASX
-    ]
+    # board = %w[
+    #   MMMSXXMASM
+    #   MSAMXMSMSA
+    #   AMXSXMAAMM
+    #   MSAMASMSMX
+    #   XMASAMXAMM
+    #   XXAMMXXAMA
+    #   SMSMSASXSS
+    #   SAXAMASAAA
+    #   MAMMMXMMMM
+    #   MXMXAXMASX
+    # ]
     board = File.readlines(filename)
     @part1 = board.size.times.map { |y| board[y].size.times.map { |x| count_xmas(board, y, x) }.sum }.sum
-    @part2 = 0 # board.size.times.map { |y| board[y].size.times.map { |x| count_x_mas(board, y, x) }.sum }.sum
+    @part2 = board.size.times.map { |y| board[y].size.times.map { |x| count_x_mas(board, y, x) }.sum }.sum
   end
 
   private
@@ -48,22 +48,14 @@ class P4
     ].count { |e| e == 'XMAS' }
   end
 
-  def count_x_mas(board, y, x) # rubocop:disable Naming/MethodParameterName
+  def count_x_mas(board, y, x) # rubocop:disable Naming/MethodParameterName,Metrics/AbcSize
     d1 = [[y, x], [y + 1, x + 1], [y + 2, x + 2]]
     d2 = [[y, x + 2], [y + 1, x + 1], [y + 2, x]]
     d3 = [[y + 2, x], [y + 1, x + 1], [y, x + 2]]
     d4 = [[y + 2, x + 2], [y + 1, x + 1], [y, x]]
-    [
-      # 1-2-3
-      get(board, *d1, *d2),
-      get(board, *d1, *d3),
-      # 2-1-4
-      get(board, *d2, *d1),
-      get(board, *d2, *d4),
-      # 3-1-4
-      get(board, *d3, *d1),
-      get(board, *d3, *d4)
-    ].count { |e| e == 'MASMAS' }
+    [get(board, *d1, *d2), get(board, *d1, *d3), get(board, *d4, *d2), get(board, *d4, *d3)].count do |e|
+      e == 'MASMAS'
+    end
   end
 end
 
@@ -72,6 +64,6 @@ if $PROGRAM_NAME == __FILE__
   print('Part 1 (2462): ')
   puts(p.part1)
 
-  print('Part 2 (): ')
+  print('Part 2 (1877): ')
   puts(p.part2)
 end
