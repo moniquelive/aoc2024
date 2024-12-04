@@ -3,6 +3,24 @@
 
 # class P4
 class P4
+  DIRECTIONS = [
+    [[0, 1], [0, 2], [0, 3]], # right
+    [[0, -1], [0, -2], [0, -3]], # left
+    [[1, 0], [2, 0], [3, 0]],    # down
+    [[-1, 0], [-2, 0], [-3, 0]], # up
+    [[1, 1], [2, 2], [3, 3]],    # down-right
+    [[-1, 1], [-2, 2], [-3, 3]], # up-right
+    [[1, -1], [2, -2], [3, -3]], # down-left
+    [[-1, -1], [-2, -2], [-3, -3]] # up-left
+  ].freeze
+
+  X_PATTERNS = [
+    [[[0, 0], [1, 1], [2, 2]], [[0, 2], [1, 1], [2, 0]]],
+    [[[0, 0], [1, 1], [2, 2]], [[2, 0], [1, 1], [0, 2]]],
+    [[[2, 2], [1, 1], [0, 0]], [[0, 2], [1, 1], [2, 0]]],
+    [[[2, 2], [1, 1], [0, 0]], [[2, 0], [1, 1], [0, 2]]]
+  ].freeze
+
   attr_reader :part1, :part2
 
   def initialize(filename)
@@ -18,43 +36,33 @@ class P4
     #   MAMMMXMMMM
     #   MXMXAXMASX
     # ]
-    board = File.readlines(filename)
-    @part1 = board.size.times.map { |y| board[y].size.times.map { |x| count_xmas(board, y, x) }.sum }.sum
-    @part2 = board.size.times.map { |y| board[y].size.times.map { |x| count_x_mas(board, y, x) }.sum }.sum
+    board = File.readlines(filename).map(&:chomp)
+    @part1 = count_patterns(board) { |y, x| count_xmas(board, y, x) }
+    @part2 = count_patterns(board) { |y, x| count_x_mas(board, y, x) }
   end
 
   private
 
-  def get(board, *idxs) # rubocop:disable Metrics/AbcSize
-    idxs.map do |idx|
-      if idx.first.negative? || idx.last.negative? || idx.first >= board.size || idx.last >= board[idx.first].size
-        return nil
-      end
+  def count_patterns(board)
+    board.size.times.sum { |y| board[y].size.times.sum { |x| yield(y, x) } }
+  end
 
-      board[idx.first][idx.last]
+  def get(board, coords)
+    coords.map do |y, x|
+      return nil if [y, x].any? { |i| i.negative? || i >= board.size }
+
+      board[y][x]
     end.join
   end
 
-  def count_xmas(board, y, x) # rubocop:disable Naming/MethodParameterName,Metrics/AbcSize
-    [
-      get(board, [y, x], [y, x + 1], [y, x + 2], [y, x + 3]), # right
-      get(board, [y, x], [y, x - 1], [y, x - 2], [y, x - 3]), # left
-      get(board, [y, x], [y + 1, x], [y + 2, x], [y + 3, x]), # down
-      get(board, [y, x], [y - 1, x], [y - 2, x], [y - 3, x]), # up
-      get(board, [y, x], [y + 1, x + 1], [y + 2, x + 2], [y + 3, x + 3]), # down-right
-      get(board, [y, x], [y - 1, x + 1], [y - 2, x + 2], [y - 3, x + 3]), # up-right
-      get(board, [y, x], [y + 1, x - 1], [y + 2, x - 2], [y + 3, x - 3]), # down-left
-      get(board, [y, x], [y - 1, x - 1], [y - 2, x - 2], [y - 3, x - 3]) # up-left
-    ].count { |e| e == 'XMAS' }
+  def count_xmas(board, y, x) # rubocop:disable Naming/MethodParameterName
+    DIRECTIONS.count { |dir| get(board, [[y, x], *dir.map { |dy, dx| [y + dy, x + dx] }]) == 'XMAS' }
   end
 
-  def count_x_mas(board, y, x) # rubocop:disable Naming/MethodParameterName,Metrics/AbcSize
-    d1 = [[y, x], [y + 1, x + 1], [y + 2, x + 2]]
-    d2 = [[y, x + 2], [y + 1, x + 1], [y + 2, x]]
-    d3 = [[y + 2, x], [y + 1, x + 1], [y, x + 2]]
-    d4 = [[y + 2, x + 2], [y + 1, x + 1], [y, x]]
-    [get(board, *d1, *d2), get(board, *d1, *d3), get(board, *d4, *d2), get(board, *d4, *d3)].count do |e|
-      e == 'MASMAS'
+  def count_x_mas(board, y, x) # rubocop:disable Naming/MethodParameterName
+    X_PATTERNS.count do |pattern|
+      coords = pattern.map { |path| path.map { |dy, dx| [y + dy, x + dx] } }
+      get(board, coords.flatten(1)) == 'MASMAS'
     end
   end
 end
