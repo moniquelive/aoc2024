@@ -3,42 +3,12 @@
 
 # class P4
 class P4
-  DIRECTIONS = [
-    [[0, 1], [0, 2], [0, 3]], # right
-    [[0, -1], [0, -2], [0, -3]], # left
-    [[1, 0], [2, 0], [3, 0]],    # down
-    [[-1, 0], [-2, 0], [-3, 0]], # up
-    [[1, 1], [2, 2], [3, 3]],    # down-right
-    [[-1, 1], [-2, 2], [-3, 3]], # up-right
-    [[1, -1], [2, -2], [3, -3]], # down-left
-    [[-1, -1], [-2, -2], [-3, -3]] # up-left
-  ].freeze
-
-  X_PATTERNS = [
-    [[[0, 0], [1, 1], [2, 2]], [[0, 2], [1, 1], [2, 0]]],
-    [[[0, 0], [1, 1], [2, 2]], [[2, 0], [1, 1], [0, 2]]],
-    [[[2, 2], [1, 1], [0, 0]], [[0, 2], [1, 1], [2, 0]]],
-    [[[2, 2], [1, 1], [0, 0]], [[2, 0], [1, 1], [0, 2]]]
-  ].freeze
-
   attr_reader :part1, :part2
 
   def initialize(filename)
-    # board = %w[
-    #   MMMSXXMASM
-    #   MSAMXMSMSA
-    #   AMXSXMAAMM
-    #   MSAMASMSMX
-    #   XMASAMXAMM
-    #   XXAMMXXAMA
-    #   SMSMSASXSS
-    #   SAXAMASAAA
-    #   MAMMMXMMMM
-    #   MXMXAXMASX
-    # ]
     board = File.readlines(filename).map(&:chomp)
-    @part1 = count_patterns(board) { |y, x| count_xmas(board, y, x) }
-    @part2 = count_patterns(board) { |y, x| count_x_mas(board, y, x) }
+    @part1 = count_patterns(board) { |y, x| xmas(board, y, x) }
+    @part2 = count_patterns(board) { |y, x| x_mas(board, y, x) }
   end
 
   private
@@ -55,11 +25,29 @@ class P4
     end.join
   end
 
-  def count_xmas(board, y, x) # rubocop:disable Naming/MethodParameterName
+  DIRECTIONS = [
+    [[0, 1], [0, 2], [0, 3]], # right
+    [[0, -1], [0, -2], [0, -3]], # left
+    [[1, 0], [2, 0], [3, 0]],    # down
+    [[-1, 0], [-2, 0], [-3, 0]], # up
+    [[1, 1], [2, 2], [3, 3]],    # down-right
+    [[-1, 1], [-2, 2], [-3, 3]], # up-right
+    [[1, -1], [2, -2], [3, -3]], # down-left
+    [[-1, -1], [-2, -2], [-3, -3]] # up-left
+  ].freeze
+
+  def xmas(board, y, x) # rubocop:disable Naming/MethodParameterName
     DIRECTIONS.count { |dir| get(board, [[y, x], *dir.map { |dy, dx| [y + dy, x + dx] }]) == 'XMAS' }
   end
 
-  def count_x_mas(board, y, x) # rubocop:disable Naming/MethodParameterName
+  X_PATTERNS = [
+    [[[0, 0], [1, 1], [2, 2]], [[0, 2], [1, 1], [2, 0]]],
+    [[[0, 0], [1, 1], [2, 2]], [[2, 0], [1, 1], [0, 2]]],
+    [[[2, 2], [1, 1], [0, 0]], [[0, 2], [1, 1], [2, 0]]],
+    [[[2, 2], [1, 1], [0, 0]], [[2, 0], [1, 1], [0, 2]]]
+  ].freeze
+
+  def x_mas(board, y, x) # rubocop:disable Naming/MethodParameterName
     X_PATTERNS.count do |pattern|
       coords = pattern.map { |path| path.map { |dy, dx| [y + dy, x + dx] } }
       get(board, coords.flatten(1)) == 'MASMAS'
