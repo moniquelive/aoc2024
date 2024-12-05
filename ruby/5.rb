@@ -20,7 +20,7 @@ class P5
     sum = ->(pp) { pp.map { |p| p[p.size / 2] }.sum }
     sort = ->(pp) { pp.sort { |a, b| @rules[a]&.include?(b) ? 1 : -1 } }
 
-    @part1 = sum.call(pages.filter { |p| valid?(p) })
+    @part1 = sum.call(pages.select { |p| valid?(p) })
     @part2 = sum.call(pages.reject { |p| valid?(p) }.map { |p| sort.call(p) })
   end
 
@@ -37,9 +37,6 @@ end
 
 if $PROGRAM_NAME == __FILE__
   p = P5.new('../input/5-1.input')
-  print('Part 1 (5208): ')
-  puts(p.part1)
-
-  print('Part 2 (6732): ')
-  puts(p.part2)
+  puts("Part 1 (5208): #{p.part1}")
+  puts("Part 2 (6732): #{p.part2}")
 end
