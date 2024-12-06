@@ -49,8 +49,7 @@ end
 # class Board
 class Board
   def initialize(lines)
-    @grid = lines.map(&:chomp)
-                 .map { |l| l.split('') }
+    @grid = lines.map(&:chomp).map(&:chars)
   end
 
   def start_cell
@@ -100,8 +99,8 @@ class P6
       board = Marshal.load(Marshal.dump(@board)) # deep copy
       board.block(*candidates.pop)
       guard = Guard.new(board.start_cell)
-      catch do |obj|
-        traverse(guard, board) { loops += 1 and throw obj if guard.loop? }
+      catch :loop do
+        traverse(guard, board) { loops += 1 and throw :loop if guard.loop? }
       rescue StandardError
         next
       end
@@ -111,13 +110,13 @@ class P6
 
   private
 
-  def traverse(guard, board, &block)
+  def traverse(guard, board)
     while guard.walk
       next unless board.cell_at(*guard.position) == '#'
 
       guard.backup
       guard.rotate
-      block&.call
+      yield if block_given?
     end
   end
 end
