@@ -9,7 +9,7 @@ class P9
     # line = '2333133121414131402'.split('').map(&:to_i)
     line = File.read(filename).split('').map(&:to_i)
     parsed = parse(line)
-    # @part1 = checksum(compact(parsed.dup))
+    @part1 = checksum(compact(parsed.dup))
     @part2 = checksum(compact2(parsed.dup))
   end
 
