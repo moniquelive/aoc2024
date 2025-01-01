@@ -21,8 +21,6 @@ end
 
 # class P14
 class P14
-  attr_reader :part1, :part2
-
   def initialize(filename, board_w = 11, board_h = 7)
     # lines = <<~LINES.split("\n")
     #   p=0,4 v=3,-3
@@ -38,43 +36,52 @@ class P14
     #   p=2,4 v=2,-3
     #   p=9,5 v=-3,-3
     # LINES
-    lines = File.readlines(filename)
-    robots1 = lines.map { |line| Robot.new(line) }
-    robots2 = lines.map { |line| Robot.new(line) }
-    robots1.each { |r| r.step_in_board(100, board_w, board_h) }
+    @lines = File.readlines(filename)
+    @board_w = board_w
+    @board_h = board_h
+    @quad1 = (@board_h / 2).times.flat_map { |row| (@board_w / 2).times.map { |col| [col, row] } }
+    @quad2 = (@board_h / 2).times.flat_map { |row| (@board_w / 2).times.map { |col| [col + 1 + (@board_w / 2), row] } }
+    @quad3 = (@board_h / 2).times.flat_map { |row| (@board_w / 2).times.map { |col| [col, row + 1 + (@board_h / 2)] } }
+    @quad4 = (@board_h / 2).times.flat_map do |row|
+      (@board_w / 2).times.map { |col| [col + 1 + (@board_w / 2), row + 1 + (@board_h / 2)] }
+    end
+  end
+
+  def part1
+    robots = @lines.map { |line| Robot.new(line) }
+    robots.each { |r| r.step_in_board(100, @board_w, @board_h) }
 
     board = Hash.new(0)
-    robots1.each { |r| board[[r.x, r.y]] += 1 }
+    robots.each { |r| board[[r.x, r.y]] += 1 }
 
-    quad1 = (board_h / 2).times.flat_map { |row| (board_w / 2).times.map { |col| [col, row] } }
-    quad2 = (board_h / 2).times.flat_map { |row| (board_w / 2).times.map { |col| [col + 1 + (board_w / 2), row] } }
-    quad3 = (board_h / 2).times.flat_map { |row| (board_w / 2).times.map { |col| [col, row + 1 + (board_h / 2)] } }
-    quad4 = (board_h / 2).times.flat_map do |row|
-      (board_w / 2).times.map do |col|
-        [col + 1 + (board_w / 2), row + 1 + (board_h / 2)]
-      end
-    end
-    q1 = quad1.map { |p| board[p] }.sum
-    q2 = quad2.map { |p| board[p] }.sum
-    q3 = quad3.map { |p| board[p] }.sum
-    q4 = quad4.map { |p| board[p] }.sum
-    @part1 = q1 * q2 * q3 * q4
+    [sum(@quad1, board),
+     sum(@quad2, board),
+     sum(@quad3, board),
+     sum(@quad4, board)].reduce(&:*)
+  end
 
-    @part2 = 6876 # found visually
-    robots2.each { |r| r.step_in_board(@part2 - 1, board_w, board_h) }
-    board.clear
-    robots2.each do |r|
-      r.step_in_board(1, board_w, board_h)
+  def part2
+    robots = @lines.map { |line| Robot.new(line) }
+    seconds = 6876 # found visually
+
+    board = Hash.new(0)
+    robots.each do |r|
+      r.step_in_board(seconds, @board_w, @board_h)
       board[[r.x, r.y]] += 1
     end
-    # puts pretty(board, board_w, board_h)
+    # puts pretty(board, @board_w, @board_h)
+    seconds
   end
 
   private
 
+  def sum(quad, board)
+    quad.map { |p| board[p] }.sum
+  end
+
   def pretty(board, width, height)
-    width.times.flat_map do |col|
-      height.times.map { |row| board[[col, row]] }.join + "\n"
+    height.times.map do |row|
+      width.times.flat_map { |col| board[[col, row]] }.join + "\n" # rubocop:disable Style/StringConcatenation
     end.join
   end
 end
