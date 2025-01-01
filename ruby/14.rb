@@ -81,7 +81,7 @@ class P14
 
   def pretty(board, width, height)
     height.times.map do |row|
-      width.times.flat_map { |col| board[[col, row]] }.join + "\n" # rubocop:disable Style/StringConcatenation
+      width.times.map { |col| board[[col, row]] }.join + "\n" # rubocop:disable Style/StringConcatenation
     end.join
   end
 end
